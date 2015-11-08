@@ -1,16 +1,12 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 
 ## Loading and preprocessing the data
 
 Unzip and read the raw data into R.
 
-```{r}
+
+```r
 stepData <- 
   read.csv(
     unzip('./activity.zip'),
@@ -21,7 +17,8 @@ stepData <-
 As the intervals are times in hours and minutes, change interval to decimal 
 hours in order to make plots appear correct in time sequence.
 
-```{r}
+
+```r
 stepData$interval <- (stepData$interval%/%100)+(stepData$interval%%100/60)
 ```
 
@@ -30,7 +27,8 @@ stepData$interval <- (stepData$interval%/%100)+(stepData$interval%%100/60)
 Aggregate the raw data to get the steps per day, and plot a histogram of 
 the results.
 
-```{r}
+
+```r
 aggDate <- aggregate(steps ~ date, stepData, sum)
 hist(
   aggDate$steps,
@@ -40,18 +38,30 @@ hist(
 )
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
+
 Calculate and return the mean number of steps per day.
 
-```{r}
+
+```r
 meanSteps <- mean(aggDate$steps)
 meanSteps
 ```
 
+```
+## [1] 10766.19
+```
+
 Calculate and return the median number of steps per day.
 
-```{r}
+
+```r
 medianSteps <- median(aggDate$steps)
 medianSteps
+```
+
+```
+## [1] 10765
 ```
 
 ## What is the average daily activity pattern?
@@ -59,7 +69,8 @@ medianSteps
 Aggregate the raw data to get the steps by interval, and plot a line plot 
 of the results.
 
-```{r}
+
+```r
 aggInterval <- aggregate(steps ~ interval, stepData, mean)
 plot(
   aggInterval$interval,
@@ -72,15 +83,27 @@ plot(
 )
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-6-1.png) 
+
 Find which number period has the peak in mean activity.
-```{r}
+
+```r
 which.max(aggInterval$steps)
 ```
 
+```
+## [1] 104
+```
+
 Output the time corresponding to this period.
-```{r}
+
+```r
 hour <- aggInterval$interval[which.max(aggInterval$steps)]
 paste0(hour%/%1, ':', hour%%1*60)
+```
+
+```
+## [1] "8:35"
 ```
 
 
@@ -88,13 +111,19 @@ paste0(hour%/%1, ':', hour%%1*60)
 ## Imputing missing values
 
 Calculate and output the number of periods with NAs.
-```{r}
+
+```r
 sum(is.na(stepData$steps))
+```
+
+```
+## [1] 2304
 ```
 
 Create a new data fram with missing values replaced by the average for the
 5-minute period across the whole period.
-```{r}
+
+```r
 replaceData <- stepData
 replaceRefs <- match(stepData$interval, aggInterval$interval)
 replaceData$steps[is.na(replaceData$steps)] <- aggInterval$steps[replaceRefs][is.na(replaceData$steps)]
@@ -102,7 +131,8 @@ replaceData$steps[is.na(replaceData$steps)] <- aggInterval$steps[replaceRefs][is
 
 Create a new histogram of the total number of steps per day using the data 
 with NAs replaced.
-```{r}
+
+```r
 aggRepDate <- aggregate(steps ~ date, replaceData, sum)
 hist(
   aggRepDate$steps,
@@ -111,6 +141,8 @@ hist(
   xlab = 'Total steps per day'
 )
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-11-1.png) 
 
 Imputing missing values has added many more days which have the mean total
 number of steps per day. This has reduced the variance of the data, and 
@@ -121,7 +153,8 @@ produced a histogram with a sharper peak.
 Add a column to the original data to indicate whether each day is a 
 weekday or weekend. The original data (with NAs) has been used to avoid 
 biasing the results toward the average activity pattern.
-```{r}
+
+```r
 library(lubridate)
 stepData$wday <- wday(stepData$date)
 stepData$state <- as.factor(NA)
@@ -131,14 +164,16 @@ stepData$state[stepData$wday > 1 & stepData$wday < 7] <- as.factor('Weekday')
 ```
 
 Aggregate the dataset by interval & weekend/weekday.
-```{r}
+
+```r
 aggNew <- aggregate(steps ~ interval + state, stepData, mean)
 ```
 
 Plots of activity patterns for weekdays and weekends are shown below. The 
 original data (with NAs) has been used to avoid biasing the results toward 
 the average activity pattern.
-```{r}
+
+```r
 library(lattice)
 xyplot(
   steps ~ interval | state, 
@@ -149,3 +184,5 @@ xyplot(
   ylab = 'Mean number of steps in 5-minute interval'
   )
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-14-1.png) 
